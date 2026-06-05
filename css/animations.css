@@ -1,0 +1,34 @@
+/* Animations & 3D effects for BhiMachines Fast Food */
+
+/* Hero tilt container */
+.hero-tilt{transform-style:preserve-3d;}
+
+/* Scroll reveal is handled by main.js via [data-reveal] */
+
+/* Typewriter */
+.typewriter{
+  display:inline-block;
+  font-weight:900;
+  color:var(--accent);
+  border-right:3px solid rgba(255,215,0,.7);
+  padding-right:6px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+@keyframes caretBlink{50%{border-right-color:transparent;}}
+.typewriter{animation: caretBlink .9s steps(1) infinite;}
+
+/* Gradient border (featured items) */
+
+/* Parallax background is applied via JS translating hero-bg */
+
+/* Menu card lift */
+.flip-card:hover{transform: translateY(-4px);}
+.flip-card{transition: transform .25s ease;}
+
+/* Smooth subtle float for callouts */
+@keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+/* Navbar blur pulse */
+
+
