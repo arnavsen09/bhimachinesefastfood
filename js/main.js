@@ -154,26 +154,8 @@
   // Render menu cards
   const menuGrid = document.getElementById('menuGrid');
 
-  const categoryCardsImage = (category) => {
-    // Using a consistent per-category image.
-    // (Your prompt asked preserve text/prices; images are enhanced for premium look.)
-    const images = {
-      soup:'https://images.unsplash.com/photo-1532634726-8b9fb059b4a3?auto=format&fit=crop&w=900&q=80',
-      pavbhaji:'https://images.unsplash.com/photo-1611216162693-4d02a8a1d4f1?auto=format&fit=crop&w=900&q=80',
-      rolls:'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80',
-      tandoor:'https://images.unsplash.com/photo-1604909053191-ffdcf07f095c?auto=format&fit=crop&w=900&q=80',
-      vegrice:'https://images.unsplash.com/photo-1604909053191-ffdcf07f095c?auto=format&fit=crop&w=900&q=80',
-      chinese:'https://images.unsplash.com/photo-1604909053191-ffdcf07f095c?auto=format&fit=crop&w=900&q=80',
-      thukpa:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80',
-      special:'https://images.unsplash.com/photo-1562967914-7dbb9bff4b1d?auto=format&fit=crop&w=900&q=80',
-      indian:'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=900&q=80',
-      momos:'https://images.unsplash.com/photo-1541544181074-ea5f0d3e3d6b?auto=format&fit=crop&w=900&q=80',
-      snacks:'https://images.unsplash.com/photo-1543339308-43e59d0b03f0?auto=format&fit=crop&w=900&q=80',
-      raita:'https://images.unsplash.com/photo-1563371356-88f4e6a2d9a9?auto=format&fit=crop&w=900&q=80',
-      shakes:'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=900&q=80',
-    };
-    return images[category] || 'https://images.unsplash.com/photo-1543339308-43e59d0b03f0?auto=format&fit=crop&w=900&q=80';
-  };
+  // Cards were using per-category images earlier; now we render text-only.
+  const categoryCardsImage = () => '';
 
   function cardHtml(item){
     const img = categoryCardsImage(item.category);
@@ -181,14 +163,12 @@
       <article class="menu-card" data-category="${item.category}">
         <div class="flip">
           <div class="face face--front">
-            <div class="front-media">
-              <img src="${img}" alt="Food preview for ${escapeHtml(item.name)}" loading="lazy" />
-            </div>
             <div class="front-body">
               <h3 class="menu-item-title">${escapeHtml(item.name)}</h3>
               <div class="menu-item-meta">Freshly prepared • Premium veg fast food</div>
             </div>
           </div>
+
 
           <div class="face face--back">
             <div class="back-body">
