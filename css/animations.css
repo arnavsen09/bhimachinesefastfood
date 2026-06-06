@@ -1,34 +1,46 @@
-/* Animations & 3D effects for BhiMachines Fast Food */
+/* 3D + Flip helpers */
+.menu-card{will-change:transform;}
 
-/* Hero tilt container */
-.hero-tilt{transform-style:preserve-3d;}
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(18px);} 
+.reveal.is-visible{opacity:1;transform:none;transition:opacity .7s ease, transform .7s ease;}
 
-/* Scroll reveal is handled by main.js via [data-reveal] */
+/* Hero tilt smooth */
+.hero-tilt__inner{transition:transform .08s linear;}
+
+/* Gradient border animation */
+.feature-card,
+.glass-card{position:relative;}
+.feature-card::after,
+.glass-card::after{
+  content:"";
+  position:absolute;inset:-1px;
+  border-radius:inherit;
+  background:linear-gradient(135deg, rgba(255,69,0,.0), rgba(255,215,0,.35), rgba(255,69,0,.0));
+  opacity:.0;
+  transition:opacity .25s ease;
+  pointer-events:none;
+}
+.feature-card:hover::after,
+.glass-card:hover::after{opacity:.8;}
+
+/* Particles runtime uses CSS keyframes in style.css */
 
 /* Typewriter */
-.typewriter{
-  display:inline-block;
-  font-weight:900;
-  color:var(--accent);
-  border-right:3px solid rgba(255,215,0,.7);
-  padding-right:6px;
-  white-space:nowrap;
-  overflow:hidden;
+@keyframes caretBlink{0%,100%{opacity:1}50%{opacity:.15}}
+.typewriter-caret{display:inline-block;margin-left:2px;color:var(--accent);animation:caretBlink 1s steps(2,end) infinite;}
+
+/* Navbar logo drop */
+.brand-mark{
+  animation:logoDrop .75s cubic-bezier(.2,.9,.2,1) both;
 }
-@keyframes caretBlink{50%{border-right-color:transparent;}}
-.typewriter{animation: caretBlink .9s steps(1) infinite;}
+@keyframes logoDrop{
+  from{transform:translateY(-18px) scale(.88);opacity:0;}
+  to{transform:translateY(0) scale(1);opacity:1;}
+}
 
-/* Gradient border (featured items) */
-
-/* Parallax background is applied via JS translating hero-bg */
-
-/* Menu card lift */
-.flip-card:hover{transform: translateY(-4px);}
-.flip-card{transition: transform .25s ease;}
-
-/* Smooth subtle float for callouts */
-@keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-
-/* Navbar blur pulse */
-
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;scroll-behavior:auto !important;}
+}
 

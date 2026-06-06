@@ -1,213 +1,201 @@
-// js/animations.js
-// 3D hero tilt, parallax, scroll reveals, counters, testimonial carousel, particles.
-// Vanilla JS only.
+/* Scroll reveal, navbar blur, hero tilt, parallax, particles, typewriter */
 
-(function () {
-  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function(){
+  // IntersectionObserver reveals (supports .reveal)
+  function initReveal(){
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    if(!els.length) return;
 
-  function $$(sel, root) {
-    return Array.from((root || document).querySelectorAll(sel));
-  }
-  function $(sel, root) {
-    return (root || document).querySelector(sel);
-  }
-
-  // ---- HERO TILT (rotateX/rotateY on mousemove) ----
-  function setupHeroTilt() {
-    if (prefersReduced) return;
-
-    const tiltEl = $('#hero-tilt');
-    const foodImg = $('#hero-tilt .hero-food');
-    if (!tiltEl || !foodImg) return;
-
-    let rafId = null;
-    const state = { x: 0, y: 0 };
-
-    function apply() {
-      rafId = null;
-      const rect = tiltEl.getBoundingClientRect();
-      const px = (state.x - rect.left) / rect.width; // 0..1
-      const py = (state.y - rect.top) / rect.height; // 0..1
-
-      const rotateY = (px - 0.5) * 18; // -9..9
-      const rotateX = -(py - 0.5) * 14; // -7..7
-
-      tiltEl.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-      foodImg.style.transform = `translateZ(60px) translateY(0px)`;
-    }
-
-    function onMove(e) {
-      state.x = e.clientX;
-      state.y = e.clientY;
-      if (rafId) return;
-      rafId = requestAnimationFrame(apply);
-    }
-
-    function onLeave() {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = null;
-      tiltEl.style.transform = 'rotateX(0deg) rotateY(0deg)';
-    }
-
-    tiltEl.addEventListener('mousemove', onMove, { passive: true });
-    tiltEl.addEventListener('mouseleave', onLeave);
-    tiltEl.style.willChange = 'transform';
-  }
-
-  // ---- PARALLAX BACKGROUND ----
-  function setupParallax() {
-    if (prefersReduced) return;
-
-    const heroBg = $('.hero-bg');
-    if (!heroBg) return;
-
-    let lastY = 0;
-    function onScroll() {
-      lastY = window.scrollY || 0;
-      const offset = Math.min(180, Math.max(-40, lastY * 0.08));
-      heroBg.style.transform = `translateY(${offset}px)`;
-    }
-
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
-
-  // ---- COUNTER ANIMATION ----
-  function setupCounters() {
-    const counterEls = $$('.js-counter');
-    if (!counterEls.length) return;
-    if (!('IntersectionObserver' in window)) {
-      counterEls.forEach((el) => {
-        const to = parseFloat(el.getAttribute('data-to') || '0');
-        const type = el.getAttribute('data-format') || 'number';
-        el.textContent = formatCount(to, type);
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach((e)=>{
+        if(e.isIntersecting){
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
       });
+    }, { threshold: 0.12 });
+
+    els.forEach(el=>io.observe(el));
+  }
+
+  // Navbar scroll effect (adds class on header nav)
+  function initNavbarScroll(){
+    const nav = document.querySelector('.nav');
+    if(!nav) return;
+
+    const onScroll = ()=>{
+      if(window.scrollY > 10) nav.classList.add('nav--scrolled');
+      else nav.classList.remove('nav--scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+  }
+
+  // Hero tilt
+  function initHeroTilt(){
+    const tilt = document.getElementById('heroTilt');
+    const inner = document.getElementById('heroTiltInner');
+    if(!tilt || !inner) return;
+
+    // Reduced motion
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const onMove = (e)=>{
+      const rect = tilt.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width; // 0..1
+      const y = (e.clientY - rect.top) / rect.height; // 0..1
+      const rotY = (x - 0.5) * 18; // left/right
+      const rotX = -(y - 0.5) * 12; // up/down
+      inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    };
+
+    const onLeave = ()=>{ inner.style.transform = 'rotateX(0deg) rotateY(0deg)'; };
+
+    tilt.addEventListener('mousemove', onMove);
+    tilt.addEventListener('mouseleave', onLeave);
+  }
+
+  // Hero parallax background
+  function initParallax(){
+    const bg = document.querySelector('.hero-bg');
+    if(!bg) return;
+    const onScroll = ()=>{
+      const y = window.scrollY || 0;
+      bg.style.transform = `translate3d(0, ${Math.min(60, y*0.08)}px, 0)`;
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+  }
+
+  // Typewriter in hero
+  function initTypewriter(){
+    const textEl = document.querySelector('.hero-type__text');
+    if(!textEl) return;
+
+    const phrases = ['Fresh & Fiery', 'Made to Order', 'Hot & Clean', 'Premium Veg Fast Food'];
+    let idx = 0;
+    let char = 0;
+    let deleting = false;
+    const speed = 52;
+    const deleteSpeed = 28;
+
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    textEl.innerHTML = '';
+    const caret = document.createElement('span');
+    caret.className = 'typewriter-caret';
+    caret.textContent = '|';
+    caret.setAttribute('aria-hidden', 'true');
+
+    function step(){
+      const current = phrases[idx];
+      if(!deleting){
+        char++;
+        textEl.textContent = current.slice(0, char);
+        if(char >= current.length){
+          deleting = true;
+          setTimeout(step, 1100);
+          return;
+        }
+        setTimeout(step, speed);
+      } else {
+        char--;
+        textEl.textContent = current.slice(0, char);
+        if(char <= 0){
+          deleting = false;
+          idx = (idx + 1) % phrases.length;
+          setTimeout(step, 300);
+          return;
+        }
+        setTimeout(step, deleteSpeed);
+      }
+    }
+
+    // If caret markup isn’t present, append it
+    textEl.appendChild(document.createTextNode(''));
+    step();
+  }
+
+  // Particles: distribute random positions/animations
+  function initParticles(){
+    const particles = Array.from(document.querySelectorAll('.particle'));
+    if(!particles.length) return;
+    const hero = document.querySelector('.hero-visual');
+    if(!hero) return;
+
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      particles.forEach(p=>p.style.display='none');
       return;
     }
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target;
-          obs.unobserve(el);
-          animateCounter(el);
-        });
-      },
-      { threshold: 0.35 }
-    );
-
-    counterEls.forEach((el) => obs.observe(el));
-  }
-
-  function formatCount(to, type) {
-    if (type === 'plus') return `${Math.round(to)}+`;
-    if (type === 'star') {
-      // to expected like 4.8 or 5
-      const fixed = (to % 1 !== 0) ? to.toFixed(1) : String(to);
-      return `${fixed}★`;
-    }
-    return `${Math.round(to)}`;
-  }
-
-  function animateCounter(el) {
-    const to = parseFloat(el.getAttribute('data-to') || '0');
-    const type = el.getAttribute('data-format') || 'number';
-    const duration = parseInt(el.getAttribute('data-duration') || '1200', 10);
-
-    const start = 0;
-    const startTs = performance.now();
-
-    function tick(now) {
-      const t = Math.min(1, (now - startTs) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const cur = start + (to - start) * eased;
-      el.textContent = type === 'number' ? `${Math.round(cur)}` : formatCount(cur, type);
-      if (t < 1) requestAnimationFrame(tick);
-    }
-
-    if (prefersReduced) {
-      el.textContent = formatCount(to, type);
-      return;
-    }
-
-    requestAnimationFrame(tick);
-  }
-
-  // ---- TESTIMONIAL CAROUSEL ----
-  function setupCarousel() {
-    const carousel = $('#testimonials-carousel');
-    if (!carousel) return;
-
-    const track = $('.carousel-track', carousel);
-    if (!track) return;
-
-    const slides = $$('.testimonial', carousel);
-    if (!slides.length) return;
-
-    let index = 0;
-    const intervalMs = parseInt(carousel.getAttribute('data-interval') || '4200', 10);
-
-    function go(i) {
-      index = i;
-      track.style.transform = `translateX(${-index * 100}%)`;
-    }
-
-    // initial
-    go(0);
-
-    if (!prefersReduced) {
-      setInterval(() => {
-        const next = (index + 1) % slides.length;
-        go(next);
-      }, intervalMs);
-      return;
-    }
-  }
-
-  // ---- FLOATING PARTICLES IN HERO ----
-  function setupParticles() {
-    if (prefersReduced) return;
-
-    const holder = $('#hero-particles');
-    if (!holder) return;
-
-    const count = parseInt(holder.getAttribute('data-count') || '16', 10);
-
-    // Deterministic-ish randomness
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-
-      const x0 = Math.round(Math.random() * 100);
-      const y0 = Math.round(Math.random() * 100);
-      const x1 = Math.round((Math.random() * 100) - 50);
-      const y1 = Math.round((Math.random() * 100) - 50);
-
-      p.style.left = `${x0}%`;
-      p.style.top = `${y0}%`;
-
-      const dur = (2.8 + Math.random() * 2.6).toFixed(2) + 's';
+    particles.forEach((p, i)=>{
+      const left = Math.random()*90;
+      const top = Math.random()*70;
+      const dur = (4 + Math.random()*5).toFixed(2) + 's';
+      const dx = (15 + Math.random()*50).toFixed(0) + 'px';
+      const dy = (-60 - Math.random()*110).toFixed(0) + 'px';
+      p.style.left = left + '%';
+      p.style.top = top + '%';
       p.style.setProperty('--dur', dur);
-      p.style.setProperty('--x0', '0px');
-      p.style.setProperty('--y0', '0px');
-      p.style.setProperty('--x1', `${x1}px`);
-      p.style.setProperty('--y1', `${y1}px`);
-
-      const size = 7 + Math.random() * 10;
-      p.style.width = `${size}px`;
-      p.style.height = `${size}px`;
-
-      holder.appendChild(p);
-    }
+      p.style.setProperty('--dx', dx);
+      p.style.setProperty('--dy', dy);
+      p.style.animationDelay = (Math.random()*2.5).toFixed(2) + 's';
+    });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    setupHeroTilt();
-    setupParallax();
-    setupCounters();
-    setupCarousel();
-    setupParticles();
+  // Mobile drawer
+  function initMobileDrawer(){
+    const btn = document.getElementById('hamburgerBtn');
+    const drawer = document.getElementById('mobileDrawer');
+    if(!btn || !drawer) return;
+
+    const open = ()=>{
+      drawer.classList.add('is-open');
+      btn.setAttribute('aria-expanded','true');
+    };
+    const close = ()=>{
+      drawer.classList.remove('is-open');
+      btn.setAttribute('aria-expanded','false');
+    };
+
+    btn.addEventListener('click', ()=>{
+      const isOpen = drawer.classList.contains('is-open');
+      isOpen ? close() : open();
+    });
+
+    drawer.addEventListener('click', (e)=>{
+      if(e.target === drawer) close();
+    });
+
+    drawer.querySelectorAll('a').forEach(a=>{
+      a.addEventListener('click', ()=>close());
+    });
+  }
+
+  // About parallax (simple)
+  function initAboutParallax(){
+    const nodes = document.querySelectorAll('[data-parallax]');
+    if(!nodes.length) return;
+    const onScroll = ()=>{
+      const y = window.scrollY || 0;
+      nodes.forEach(n=>{
+        n.style.transform = `translate3d(0, ${Math.min(40, y*0.03)}px, 0)`;
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    initReveal();
+    initNavbarScroll();
+    initHeroTilt();
+    initParallax();
+    initParticles();
+    initTypewriter();
+    initMobileDrawer();
+    initAboutParallax();
   });
+
 })();
 
